@@ -59,8 +59,25 @@ mallapi/
 
 ├── backend/
 
-└── frontend/
+│ ├── src/
 
+│ ├── build.gradle
+
+│ ├── settings.gradle
+
+│ └── gradlew
+
+├── frontend/
+
+│ ├── src/
+
+│ ├── public/
+
+│ ├── package.json
+
+│ ├── vite.config.ts
+
+│ └── tsconfig.json
 
 ---
 
