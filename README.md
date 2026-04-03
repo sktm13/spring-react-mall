@@ -73,13 +73,13 @@ mallapi/
 ## 실행 방법
 
 ### Backend
-
+- cd backend
 - application.yml에 DB 설정 필요
 - ./gradlew bootRun
 
 
 ### Frontend
-
+- cd frontend
 - npm install
 - npm run dev
 
