@@ -56,17 +56,17 @@
 
 
 mallapi/
-├── backend/
-│ ├── src/
-│ ├── build.gradle
-│ ├── settings.gradle
-│ └── gradlew
-├── frontend/
-│ ├── src/
-│ ├── public/
-│ ├── package.json
-│ ├── vite.config.ts
-│ └── tsconfig.json
+ ├── backend/ 
+ │ ├── src/ 
+ │ ├── build.gradle 
+ │ ├── settings.gradle 
+ │ └── gradlew 
+ ├── frontend/ 
+ │ ├── src/ 
+ │ ├── public/ 
+ │ ├── package.json 
+ │ ├── vite.config.ts 
+ │ └── tsconfig.json 
 
 ---
 
