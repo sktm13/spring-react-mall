@@ -6,26 +6,15 @@ import { useEffect } from "react";
 import { reset } from "../../slices/loginSlice";
 
 function LoginPage() {
-
-
     const dispatch = useDispatch<AppDispatch>()
-
-    // 페이지 진입 시 로그인 상태 초기화 (실무 패턴)
-    useEffect(() => {
-        dispatch(reset())
-    }, [dispatch])
-
-
+    useEffect(() => { dispatch(reset()) }, [dispatch])
     return (
-
-        <div className='fixed top-0 left-0 z-1055 flex flex-col h-full w-full'>
+        <div className="min-h-screen bg-gray-100">
             <BasicMenu />
-            <div className="flex flex-wrap w-full h-full justify-center items-center border-2">
+
+            <div className="flex justify-center items-center h-[calc(100vh-64px)]">
                 <LoginComponent />
             </div>
         </div>
-
-    );
-}
-
-export default LoginPage;
+    )
+} export default LoginPage;

@@ -1,38 +1,38 @@
 function ResultModal({ title, content, callbackFn }: ResultModal) {
     return (
         <div
-            className="fixed top-0 left-0 z-1055 flex h-full w-full justify-center bg-black "
-            style={{ backgroundColor: 'rgba(169, 169, 169, 0.7)' }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
             onClick={() => {
-                if (callbackFn) {
-                    callbackFn();
-                }
+                if (callbackFn) callbackFn();
             }}
         >
             <div
-                className="absolute bg-white shadow dark:bg-gray-700 w-1/4 rounded mt-10 mb-10 px-6 min-w-600px"
+                className="bg-white w-full max-w-sm rounded-2xl shadow-xl p-6"
+                onClick={(e) => e.stopPropagation()}
             >
-                <div className="justify-center bg-warning-400 mt-6 mb-6 text-2xl border-b-4 border-gray-500">
+                {/* 타이틀 */}
+                <h2 className="text-lg font-semibold mb-4 text-center">
                     {title}
-                </div>
-                <div className="text-4xl border-orange-400 border-b-4 pt-4 pb-4">
+                </h2>
+
+                {/* 내용 */}
+                <p className="text-gray-700 text-center mb-6">
                     {content}
-                </div>
-                <div className="justify-end flex">
+                </p>
+
+                {/* 버튼 */}
+                <div className="flex justify-center">
                     <button
-                        className="rounded bg-blue-500 mt-4 mb-4 px-6 pt-4 pb-4 text-lg text-white"
+                        className="px-6 py-2 bg-black text-white rounded-lg font-semibold hover:bg-gray-800 transition"
                         onClick={() => {
-                            if (callbackFn) {
-                                callbackFn();
-                            }
+                            if (callbackFn) callbackFn();
                         }}
                     >
-                        Close Modal
+                        확인
                     </button>
                 </div>
             </div>
         </div>
-
     );
 }
 

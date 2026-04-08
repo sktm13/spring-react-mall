@@ -10,7 +10,7 @@ function ReadComponent({ ino }: { ino: number }) {
 
   const { moveToList, moveToModify } = useCustomMove();
   const { loginState } = useCustomLogin();
-
+  console.log("loginState:", loginState)
   useEffect(() => {
     getOne(ino).then((data) => {
       setInquiry(data);
@@ -63,11 +63,10 @@ function ReadComponent({ ino }: { ino: number }) {
             label="Status"
             value={
               <span
-                className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                  inquiry.status === "DONE"
+                className={`px-3 py-1 rounded-full text-sm font-semibold ${inquiry.status === "DONE"
                     ? "bg-green-100 text-green-600"
                     : "bg-gray-200 text-gray-600"
-                }`}
+                  }`}
               >
                 {inquiry.status}
               </span>

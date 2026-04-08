@@ -11,23 +11,40 @@ function LogoutComponent() {
         navigate("/")   //홈
     }
     return (
+        <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 text-center">
 
-        <div className="border-2 border-red-200 mt-10 m-2 p-4">
-            <div className="flex justify-center">
-                <div className="text-4xl m-4 p-4 font-extrabold text-red-500">
-                    Logout Component
-                </div>
+            {/* 타이틀 */}
+            <h2 className="text-2xl font-bold mb-4">
+                로그아웃
+            </h2>
+
+            {/* 안내 문구 */}
+            <p className="text-gray-600 mb-6">
+                로그아웃 하시겠습니까?
+            </p>
+
+            {/* 버튼 영역 */}
+            <div className="flex gap-3 justify-center">
+
+                {/* 취소 */}
+                <button
+                    className="px-4 py-2 border rounded-lg text-gray-600 hover:bg-gray-100 transition"
+                    onClick={() => navigate(-1)}
+                >
+                    취소
+                </button>
+
+                {/* 로그아웃 */}
+                <button
+                    className="px-4 py-2 bg-black text-white rounded-lg font-semibold hover:bg-gray-800 transition"
+                    onClick={() => handleLogout()}
+                >
+                    로그아웃
+                </button>
+
             </div>
-            <div className="flex justify-center">
-                <div className="relative mb-4 flex w-full justify-center">
-                    <div className="w-2/5 p-6 flex justify-center font-bold">
-                        <button className="rounded p-4 w-36 bg-red-500 text-xl text-white"
-                            onClick={() => handleLogout()} > LOGOUT </button>
-                    </div>
-                </div>
-            </div>
+
         </div>
-        
     )
 }
 export default LogoutComponent 

@@ -3,143 +3,80 @@ import ResultModal from "../common/resultModal";
 import useCustomLogin from "../../hooks/useCustomLogin";
 import KakaoLoginComponent from "./kakaoLoginComponent";
 
-// //상태
-// interface LoginResult {
-//     email: string,
-//     signed: boolean
-// }
-
-// const initState: LoginResult = {
-//     email: '',
-//     signed: false
-// }
-
-// async function loginAction(state: LoginResult, formData: FormData) {
-
-//     //2초간 delay
-//     await new Promise(resolve => setTimeout(resolve, 2000));
-
-//     const email = formData.get('email') as string
-//     const pw = formData.get("pw") as string
-
-//     console.log("email ", email, "pw ", pw)
-
-//     return { email: email, signed: true }
-// }
-
 function LoginComponent() {
 
-    const{doLogin, loginStatus, moveToPath} = useCustomLogin()
-
+    const { doLogin, loginStatus, moveToPath } = useCustomLogin()
     const [email, setEmail] = useState('')
     const [pw, setPw] = useState('')
-
-    const handleLogin = () => {
-        doLogin(email, pw)
-    }
-
-    const closeModal = () => {
-        moveToPath('/')
-    }
-
-
-    // //useActionState()대신 useDispatch() 사용
-
-    // const dispatch = useDispatch()
-
-
-    // const [state, action, isPending] = useActionState(loginAction, initState)
-
-    // //막줄 [] 상태가 변하면 발동. loginSlice 의 reducer 발동
-    // useEffect(() => {
-    //     if (state.signed) {
-    //         dispatch(login(state))
-    //     }
-    // }, [state.signed])
-
-    //
+    const handleLogin = () => { doLogin(email, pw) }
+    const closeModal = () => { moveToPath('/') }
 
     return (
+        <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8">
 
-        <div className="border-2 border-sky-200 mt-10 m-2 p-4">
+            {loginStatus === 'pending' &&
+                <div className="mb-4 text-center text-sm text-gray-500">
+                    로그인 중...
+                </div>}
 
-            {loginStatus === 'pending' && <div className="bg-amber-300">로그인 중...</div>}
+            {loginStatus === 'fulfilled' &&
+                <ResultModal title="Login Result" content="로그인 되었습니다." callbackFn={closeModal} />}
 
-            {loginStatus === 'fulfilled' && <ResultModal title="Login Result" content="로그인 되었습니다." callbackFn={closeModal} />}
+            {loginStatus === 'rejected' &&
+                <ResultModal title="Login Result" content="로그인에 실패하였습니다." callbackFn={closeModal} />}
 
-            {loginStatus === 'rejected' && <ResultModal title="Login Result" content="로그인에 실패하였습니다." callbackFn={closeModal} />}
-
+            {/* 타이틀 */}
             <div className="flex justify-center">
-                <div className="text-4xl m-4 p-4 font-extrabold text-blue-500">Login Component</div>
-            </div>
-            <div className="flex justify-center">
-                <div className="relative mb-4 flex w-full flex-wrap items-stretch">
-                    <div className="w-full p-6 text-left font-bold">Email</div>
-                    <input className="w-full p-6 rounded-r border border-solid border-neutral-500 shadow-md"
-                        name="email" type={'text'} onChange={(e) => setEmail(e.target.value)} />
+                <div className="text-2xl font-bold mb-6">
+                    로그인
                 </div>
             </div>
+
+            {/* Email */}
             <div className="flex justify-center">
-                <div className="relative mb-4 flex w-full flex-wrap items-stretch">
-                    <div className="w-full p-6 text-left font-bold">Password</div>
-                    <input className="w-full p-6 rounded-r border border-solid border-neutral-500 shadow-md"
-                        name="pw" type={'password'} onChange={(e) => setPw(e.target.value)} />
+                <div className="w-full mb-4">
+                    <div className="text-sm font-semibold mb-1">Email</div>
+                    <input
+                        className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        name="email"
+                        type="text"
+                        onChange={(e) => setEmail(e.target.value)}
+                    />
                 </div>
             </div>
+
+            {/* Password */}
             <div className="flex justify-center">
-                <div className="relative mb-4 flex w-full justify-center">
-                    <div className="w-2/5 p-6 flex justify-center font-bold">
-                        <button type='submit'
-                            className="rounded p-4 w-36 bg-blue-500 text-xl  text-white"
-                            onClick={() => handleLogin()}>
-                            LOGIN
-                        </button>
-                    </div>
+                <div className="w-full mb-6">
+                    <div className="text-sm font-semibold mb-1">Password</div>
+                    <input
+                        className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        name="pw"
+                        type="password"
+                        onChange={(e) => setPw(e.target.value)}
+                    />
                 </div>
             </div>
-            <KakaoLoginComponent/>
+
+            {/* 버튼 */}
+            <div className="flex justify-center">
+                <div className="w-full">
+                    <button
+                        type="submit"
+                        className="w-full py-2 bg-black text-white rounded-lg font-semibold hover:bg-gray-800 transition"
+                        onClick={() => handleLogin()}
+                    >
+                        LOGIN
+                    </button>
+                </div>
+            </div>
+
+            {/* 카카오 로그인 */}
+            <div className="mt-6 flex flex-col items-center gap-2">
+                <p className="text-sm text-gray-400">또는</p>
+                <KakaoLoginComponent />
+            </div>
+
         </div>
-
-
-
-        // <div className="border-2 border-sky-200 mt-10 m-2 p-4">
-
-
-
-        // {/* // //useActionState()대신 useDispatch() 사용 */ }
-        /* {isPending && <div className="bg-amber-300">로그인 처리중...</div>}
-                {state.signed && <div className="bg-green-300"> 로그인 처리 완료 </div>} */
-        /* <form action={action}>
-                    <div className="flex justify-center">
-                        <div className="text-4xl m-4 p-4 font-extrabold text-blue-500">Login Component</div>
-                    </div>
-                    <div className="flex justify-center">
-                        <div className="relative mb-4 flex w-full flex-wrap items-stretch">
-                            <div className="w-full p-6 text-left font-bold">Email</div>
-                            <input className="w-full p-6 rounded-r border border-solid border-neutral-500 shadow-md"
-                                name="email" type={'text'} />
-                        </div>
-                    </div>
-                    <div className="flex justify-center">
-                        <div className="relative mb-4 flex w-full flex-wrap items-stretch">
-                            <div className="w-full p-6 text-left font-bold">Password</div>
-                            <input className="w-full p-6 rounded-r border border-solid border-neutral-500 shadow-md"
-                                name="pw" type={'password'} />
-                        </div>
-                    </div>
-                    <div className="flex justify-center">
-                        <div className="relative mb-4 flex w-full justify-center">
-                            <div className="w-2/5 p-6 flex justify-center font-bold">
-                                <button type='submit' className="rounded p-4 w-36 bg-blue-500 text-xl text-white">
-                                    LOGIN
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </form> */
-
-        // </div>
     )
-}
-
-export default LoginComponent
+} export default LoginComponent
