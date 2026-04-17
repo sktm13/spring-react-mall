@@ -50,6 +50,11 @@ public class JWTCheckFilter extends OncePerRequestFilter {
             return true;
         }
 
+        //ELB Health Check
+        if (path.equals("/health")) {
+            return true;
+        }
+
         // false == check
         return false;
     }
@@ -95,7 +100,7 @@ public class JWTCheckFilter extends OncePerRequestFilter {
             SecurityContextHolder.getContext().setAuthentication(authenticationToken);
 
             filterChain.doFilter(request, response);
-            
+
         } catch (Exception e) {
 
             log.error("JWT Check Error..............");
@@ -112,7 +117,7 @@ public class JWTCheckFilter extends OncePerRequestFilter {
             return;
 
         }
-        
+
     }
 
 }
