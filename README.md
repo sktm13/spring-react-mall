@@ -107,7 +107,10 @@ project/
 ## 실행 방법 (로컬)
 
 ### Backend
-- application.properties에 DB 설정 필요
+- MariaDB 환경변수 설정 필요
+   - DB_URL
+   - DB_USERNAME
+   - DB_PASSWORD
 - cd backend
 - ./gradlew bootRun
 
@@ -118,7 +121,8 @@ project/
 
 ## 실행 방법 (배포 환경)
 
-URL 접속 : https://yujin-mall.com 
+~~URL 접속 : https://yujin-mall.com~~
+※ 현재 배포 종료 
 
 ---
 
