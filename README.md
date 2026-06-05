@@ -1,47 +1,27 @@
 ## 프로젝트 소개
-Spring Boot API 서버와 React를 활용해 구현한 쇼핑몰 서비스입니다.  
-
-강의를 기반으로 시작하여,
-
-문의 기능 추가, 사용자 시나리오 개선, UI/UX 리팩토링을 진행하고  
-AWS 배포 환경까지 확장하여 실제 서비스 형태로 구현했습니다.
-
----
-
-## 참고 강의
-- 강의명: 코드로 배우는 React 19 with 스프링부트 API서버
-- 플랫폼: 인프런
+Spring Boot API ,React+Vite 를 활용한 쇼핑몰 서비스
 
 ---
 
 ## 주요 기능
 
 ### 인증 / 회원
-- JWT 기반 인증 (Access / Refresh Token)
-- Spring Security 권한 관리
-- 로그인 처리 (성공/실패 핸들러 커스터마이징)
+- JWT 인증 (Access / Refresh Token)
 - Redux Toolkit + 쿠키 기반 로그인 상태 유지
 - Kakao 로그인 연동 및 회원 자동 생성
 
 ### 상품
-- 상품 CRUD
 - 이미지 업로드 및 썸네일 생성
-- 페이징 처리 (커스텀 훅 useCustomMove 활용)
+- 페이징 처리
 
 ### 장바구니
 - 사용자별 장바구니 생성
-- 상품 추가 / 수량 변경 / 삭제
-- 장바구니 상태 관리 (커스텀 훅 useCustomCart 활용)
+- 장바구니 상태 관리
 
-### 문의하기 (추가 구현)
-- Inquiry 기능 구현
+### 문의하기
 - ADMIN 권한 사용자 답변 기능
----
 
-## 추가 구현 및 개선 사항
-- 로그인 실패 시나리오 처리
-- 기본 이미지 fallback 처리
-- 전체 UI/UX 리팩토링
+### 추가 구현
 - AWS 기반 배포 환경 구축 (S3, CloudFront, EC2, ELB, RDS)
   
 ## Tech Stack
@@ -53,7 +33,6 @@ AWS 배포 환경까지 확장하여 실제 서비스 형태로 구현했습니�
 - Spring Data JPA
 - Querydsl
 - MariaDB
-
 
 ### Frontend
 - React + Vite
@@ -83,44 +62,103 @@ EC2 ↔ S3
 ```
 ---
 
-## 프로젝트 구조
+## 실행 방법
 
+Docker Compose 기준으로 실행할 수 있습니다.
+
+민감정보는 GitHub에 포함하지 않으며, 실행 전 루트 경로에 `.env` 파일을 직접 생성해야 합니다.
+
+### 1. 환경변수 파일 생성
+
+프로젝트 루트에서 `.env.example` 파일을 복사해 `.env` 파일을 생성합니다.
+
+```cp .env.example .env```
+
+생성한 `.env` 파일에서 본인의 환경에 맞게 값을 수정합니다.
+
+특히 Kakao 로그인을 사용하려면 아래 값을 입력해야 합니다.
+
+```env
+KAKAO_REST_API_KEY=your-kakao-rest-api-key
+KAKAO_CLIENT_SECRET=your-kakao-client-secret
+KAKAO_REDIRECT_URI=http://localhost:5173/member/kakao
+
+VITE_KAKAO_REST_API_KEY=your-kakao-rest-api-key
+VITE_KAKAO_REDIRECT_URI=http://localhost:5173/member/kakao
 ```
-project/
- ├── backend/ 
- │ ├── src/ 
- │ ├── build.gradle 
- │ ├── settings.gradle 
- │ └── gradlew 
- ├── frontend/ 
- │ ├── src/ 
- │ ├── public/ 
- │ ├── package.json 
- │ ├── vite.config.ts 
- │ └── tsconfig.json 
+
+Kakao Developers에도 Redirect URI를 등록해야 합니다.
+
+```text
+http://localhost:5173/member/kakao
 ```
 ---
 
-## 실행 방법 (로컬)
+### 2. Docker 실행
 
-### Backend
-- MariaDB 환경변수 설정 필요
-   - DB_URL
-   - DB_USERNAME
-   - DB_PASSWORD
-- cd backend
-- ./gradlew bootRun
+프로젝트 루트에서 아래 명령어를 실행합니다.
 
-### Frontend
-- cd frontend
-- npm install
-- npm run dev
+```bash
+docker compose up --build
+```
+---
 
+### 3. 접속 주소
+
+```text
+Frontend: http://localhost:5173
+Backend:  http://localhost:8080
+MariaDB:  localhost:3307
+```
+---
+
+### 4. 테스트 계정
+
+Docker 실행 시 초기 데이터가 자동 생성됩니다.
+
+#### USER
+
+```text
+email: user@aaa.com
+password: 1111
+```
+
+#### ADMIN
+
+```text
+email: admin@aaa.com
+password: 1111
+```
+
+#### MANAGER
+
+```text
+email: manager@aaa.com
+password: 1111
+```
+
+---
+
+### 5. Docker 종료
+
+컨테이너를 종료합니다.
+
+```bash
+docker compose down
+```
+
+DB 데이터와 업로드 파일 볼륨까지 초기화하려면 아래 명령어를 사용합니다.
+
+```bash
+docker compose down -v
+```
+`-v` 옵션을 사용하면 다음 실행 시 초기 회원, 상품, 문의 데이터가 다시 생성됩니다.
+
+---
 ## 실행 방법 (배포 환경)
 
 ~~URL 접속 : https://yujin-mall.com~~
 ※ 현재 배포 종료 
-
 ---
 
 ## 실행 화면
