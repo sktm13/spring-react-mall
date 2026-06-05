@@ -1,4 +1,4 @@
-package org.yujin.mallapi.util;
+package org.yujin.mallapi.storage;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
@@ -6,27 +6,36 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import net.coobird.thumbnailator.Thumbnails;
+import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
-@Component
+@Service
 @Log4j2
 @RequiredArgsConstructor
-public class CustomFileUtil {
+@ConditionalOnProperty(name = "app.storage.type", havingValue = "s3")
+public class S3FileStorageService implements FileStorageService {
 
     private final S3Client s3Client;
 
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
 
+    @Override
     public List<String> saveFiles(List<MultipartFile> files) {
 
         if (files == null || files.isEmpty()) {
@@ -44,7 +53,6 @@ public class CustomFileUtil {
             try {
                 String savedName = UUID.randomUUID() + "_" + file.getOriginalFilename();
 
-                // 원본 업로드
                 PutObjectRequest originalRequest = PutObjectRequest.builder()
                         .bucket(bucket)
                         .key(savedName)
@@ -56,7 +64,6 @@ public class CustomFileUtil {
                         RequestBody.fromBytes(file.getBytes())
                 );
 
-                // 썸네일 업로드
                 String contentType = file.getContentType();
 
                 if (contentType != null && contentType.startsWith("image")) {
@@ -82,13 +89,35 @@ public class CustomFileUtil {
                 uploadedNames.add(savedName);
 
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                throw new RuntimeException("S3 file upload failed", e);
             }
         }
 
         return uploadedNames;
     }
 
+    @Override
+    public ResponseEntity<Resource> getFile(String fileName) {
+        try {
+            GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                    .bucket(bucket)
+                    .key(fileName)
+                    .build();
+
+            ResponseBytes<GetObjectResponse> objectBytes =
+                    s3Client.getObjectAsBytes(getObjectRequest);
+
+            ByteArrayResource resource = new ByteArrayResource(objectBytes.asByteArray());
+
+            return ResponseEntity.ok()
+                    .body(resource);
+
+        } catch (Exception e) {
+            throw new RuntimeException("S3 file read failed: " + fileName, e);
+        }
+    }
+
+    @Override
     public void deleteFiles(List<String> fileNames) {
 
         if (fileNames == null || fileNames.isEmpty()) {
@@ -97,19 +126,23 @@ public class CustomFileUtil {
 
         for (String fileName : fileNames) {
 
-            s3Client.deleteObject(
-                    DeleteObjectRequest.builder()
-                            .bucket(bucket)
-                            .key(fileName)
-                            .build()
-            );
+            try {
+                s3Client.deleteObject(
+                        DeleteObjectRequest.builder()
+                                .bucket(bucket)
+                                .key(fileName)
+                                .build()
+                );
 
-            s3Client.deleteObject(
-                    DeleteObjectRequest.builder()
-                            .bucket(bucket)
-                            .key("s_" + fileName)
-                            .build()
-            );
+                s3Client.deleteObject(
+                        DeleteObjectRequest.builder()
+                                .bucket(bucket)
+                                .key("s_" + fileName)
+                                .build()
+                );
+            } catch (Exception e) {
+                log.warn("S3 file delete failed: {}", fileName, e);
+            }
         }
     }
 }

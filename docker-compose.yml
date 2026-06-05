@@ -1,0 +1,93 @@
+services:
+  mariadb:
+    image: mariadb:11
+    container_name: mall-mariadb
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:-root}
+      MARIADB_DATABASE: ${MARIADB_DATABASE:-malldb}
+      MARIADB_USER: ${DB_USERNAME:-admin}
+      MARIADB_PASSWORD: ${DB_PASSWORD:-admin}
+    ports:
+      - "${DB_PORT:-3307}:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    networks:
+      - mall-network
+    healthcheck:
+      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost", "-u", "root", "-p${MARIADB_ROOT_PASSWORD:-root}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: mall-backend
+    restart: unless-stopped
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    environment:
+      APP_NAME: ${APP_NAME:-mallapi}
+
+      DB_URL: ${DB_URL:-jdbc:mariadb://mariadb:3306/malldb}
+      DB_USERNAME: ${DB_USERNAME:-admin}
+      DB_PASSWORD: ${DB_PASSWORD:-admin}
+
+      JPA_DDL_AUTO: ${JPA_DDL_AUTO:-update}
+      JPA_FORMAT_SQL: ${JPA_FORMAT_SQL:-true}
+      JPA_SHOW_SQL: ${JPA_SHOW_SQL:-true}
+
+      DB_POOL_MIN_IDLE: ${DB_POOL_MIN_IDLE:-1}
+      DB_POOL_MAX_SIZE: ${DB_POOL_MAX_SIZE:-5}
+
+      MAX_REQUEST_SIZE: ${MAX_REQUEST_SIZE:-30MB}
+      MAX_FILE_SIZE: ${MAX_FILE_SIZE:-10MB}
+
+      SECURITY_LOG_LEVEL: ${SECURITY_LOG_LEVEL:-info}
+
+      FILE_STORAGE_TYPE: ${FILE_STORAGE_TYPE:-local}
+      LOCAL_UPLOAD_PATH: ${LOCAL_UPLOAD_PATH:-/app/upload}
+
+      AWS_ACCESS_KEY: ${AWS_ACCESS_KEY:-}
+      AWS_SECRET_KEY: ${AWS_SECRET_KEY:-}
+      AWS_REGION: ${AWS_REGION:-ap-northeast-2}
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET:-}
+
+      KAKAO_REST_API_KEY: ${KAKAO_REST_API_KEY}
+      KAKAO_CLIENT_SECRET: ${KAKAO_CLIENT_SECRET}
+      KAKAO_REDIRECT_URI: ${KAKAO_REDIRECT_URI:-http://localhost:5173/member/kakao}
+    ports:
+      - "8080:8080"
+    volumes:
+      - backend_upload:/app/upload
+    networks:
+      - mall-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_SERVER: ${VITE_API_SERVER:-http://localhost:8080}
+        VITE_FRONTEND_HOST: ${VITE_FRONTEND_HOST:-http://localhost:5173}
+        VITE_KAKAO_REST_API_KEY: ${VITE_KAKAO_REST_API_KEY}
+        VITE_KAKAO_REDIRECT_URI: ${VITE_KAKAO_REDIRECT_URI:-http://localhost:5173/member/kakao}
+    container_name: mall-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "5173:80"
+    networks:
+      - mall-network
+
+volumes:
+  mariadb_data:
+  backend_upload:
+
+networks:
+  mall-network:
+    driver: bridge

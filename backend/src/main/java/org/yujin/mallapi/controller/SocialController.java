@@ -5,6 +5,7 @@ import java.util.Map;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.yujin.mallapi.dto.MemberDTO;
 import org.yujin.mallapi.dto.MemberModifyDTO;
@@ -22,11 +23,12 @@ public class SocialController {
     private final MemberService memberService;
 
     @GetMapping("/api/member/kakao")
-    public Map<String, Object> getMemberFromKakao(String accessToken) {
+    public Map<String, Object> getMemberFromKakao(
+            @RequestParam(name = "code") String code) {
 
-        log.info("access Token : " + accessToken);
+        log.info("kakao authorization code: {}", code);
 
-        MemberDTO memberDTO = memberService.getKakaoMember(accessToken);
+        MemberDTO memberDTO = memberService.getKakaoMemberByCode(code);
 
         Map<String, Object> claims = memberDTO.getClaims();
 
@@ -42,12 +44,10 @@ public class SocialController {
     @PutMapping("/api/member/modify")
     public Map<String, String> modify(@RequestBody MemberModifyDTO memberModifyDTO) {
 
-        log.info("member modify: " + memberModifyDTO);
+        log.info("member modify: {}", memberModifyDTO);
 
         memberService.modifyMember(memberModifyDTO);
 
         return Map.of("result", "modified");
-
     }
-
 }

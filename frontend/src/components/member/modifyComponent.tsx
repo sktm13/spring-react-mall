@@ -1,54 +1,78 @@
-import { useActionState } from "react"
-import useCustomLogin from "../../hooks/useCustomLogin"
-import jwtAxios from "../../util/jwtUtil"
-import PendingModal from "../common/pendingModal"
-import ResultModal from "../common/resultModal"
+import { useActionState } from "react";
+import { useNavigate } from "react-router";
+import { useDispatch } from "react-redux";
+import useCustomLogin from "../../hooks/useCustomLogin";
+import jwtAxios from "../../util/jwtUtil";
+import PendingModal from "../common/pendingModal";
+import ResultModal from "../common/resultModal";
+import { save } from "../../slices/loginSlice";
+import type { AppDispatch } from "../../store";
 
 interface ModifyResult {
-    result: string,
-    error: string
+    result: string;
+    error: string;
+    nickname?: string;
 }
 
 const initState: ModifyResult = {
-    result: '',
-    error: ''
-}
+    result: "",
+    error: "",
+};
 
-const modifyAction = async (_state: ModifyResult, formData: FormData) => {
-
-    const email = formData.get("email") as string
-    const pw = formData.get("pw") as string
-    const nickname = formData.get("nickname") as string
+const modifyAction = async (_state: ModifyResult, formData: FormData): Promise<ModifyResult> => {
+    const email = formData.get("email") as string;
+    const pw = formData.get("pw") as string;
+    const nickname = formData.get("nickname") as string;
 
     if (pw.length < 8) {
-        return { result: '', error: '패스워드는 8자 이상이어야 합니다.' };
+        return {
+            result: "",
+            error: "패스워드는 8자 이상이어야 합니다.",
+        };
     }
-    try {
 
-        await jwtAxios.put('/api/member/modify', { email, pw, nickname });
+    try {
+        await jwtAxios.put("/api/member/modify", {
+            email,
+            pw,
+            nickname,
+        });
 
     } catch (err: any) {
-
-        return { result: '', error: err.response?.data?.message || '수정 중 오류가 발생했습니다.' };
-
+        return {
+            result: "",
+            error: err.response?.data?.message || "수정 중 오류가 발생했습니다.",
+        };
     }
 
-    return { result: 'Modified', error: '' }
-}
+    return {
+        result: "Modified",
+        error: "",
+        nickname,
+    };
+};
 
 function ModifyComponent() {
 
-    const { loginState, moveToLogin } = useCustomLogin()
+    const { loginState } = useCustomLogin();
 
-    const [state, action, isPending] = useActionState(modifyAction, initState)
+    const dispatch = useDispatch<AppDispatch>();
+
+    const navigate = useNavigate();
+
+    const [state, action, isPending] = useActionState(modifyAction, initState);
 
     const closeModal = () => {
-        moveToLogin()
-    }
+        dispatch(save({
+            ...loginState,
+            nickname: state.nickname || loginState.nickname,
+            social: false,
+        }));
 
+        navigate("/");
+    };
 
     return (
-
         <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8">
 
             {isPending && <PendingModal />}
@@ -67,14 +91,12 @@ function ModifyComponent() {
                 />
             )}
 
-            {/* 타이틀 */}
             <h2 className="text-2xl font-bold text-center mb-6">
                 회원 정보 수정
             </h2>
 
             <form action={action} className="space-y-4">
 
-                {/* Email */}
                 <div>
                     <label className="block text-sm font-medium mb-1">
                         Email
@@ -88,7 +110,6 @@ function ModifyComponent() {
                     />
                 </div>
 
-                {/* Password */}
                 <div>
                     <label className="block text-sm font-medium mb-1">
                         Password
@@ -101,7 +122,6 @@ function ModifyComponent() {
                     />
                 </div>
 
-                {/* Nickname */}
                 <div>
                     <label className="block text-sm font-medium mb-1">
                         Nickname
@@ -114,10 +134,8 @@ function ModifyComponent() {
                     />
                 </div>
 
-                {/* 버튼 영역 */}
                 <div className="flex gap-3 pt-2">
 
-                    {/* 취소 */}
                     <button
                         type="button"
                         onClick={() => window.history.back()}
@@ -126,7 +144,6 @@ function ModifyComponent() {
                         취소
                     </button>
 
-                    {/* 수정 */}
                     <button
                         type="submit"
                         className="w-1/2 py-2 bg-black text-white rounded-lg font-semibold hover:bg-gray-800 transition"
@@ -139,7 +156,7 @@ function ModifyComponent() {
             </form>
 
         </div>
-    )
+    );
 }
 
-export default ModifyComponent
+export default ModifyComponent;

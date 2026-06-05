@@ -1,67 +1,79 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { getCartItems, postChangeCart } from "../api/cartApi";
 
-export const getCartItemsAsync = createAsyncThunk('getCartItemsAsync', () => {
-    return getCartItems()
-})
+export const getCartItemsAsync = createAsyncThunk("getCartItemsAsync", () => {
+    return getCartItems();
+});
 
-export const postChangeCartAsync = createAsyncThunk('postChangeCartAsync', (param: CartItemRequest) => {
-    return postChangeCart(param)
-})
+export const postChangeCartAsync = createAsyncThunk(
+    "postChangeCartAsync",
+    (param: CartItemRequest) => {
+        return postChangeCart(param);
+    }
+);
 
-//초기상태
-const initState: CartItemsArray = { items: [], status: '' }
+// 초기상태
+const initState: CartItemsArray = { items: [], status: "" };
+
+const toCartItemsArray = (payload: unknown): CartItemsArray["items"] => {
+    if (Array.isArray(payload)) {
+        return payload;
+    }
+
+    if (
+        payload &&
+        typeof payload === "object" &&
+        "items" in payload &&
+        Array.isArray((payload as { items: unknown }).items)
+    ) {
+        return (payload as CartItemsArray).items;
+    }
+
+    return [];
+};
 
 const cartSlice = createSlice({
-
-    name: 'cartSlice',
+    name: "cartSlice",
     initialState: initState,
-    reducers: {
-
-
-    },
+    reducers: {},
     extraReducers: (builder) => {
+        builder
+            .addCase(getCartItemsAsync.fulfilled, (_state, action) => {
+                console.log("getCartItemsAsync payload", action.payload);
 
-        builder.addCase(
-            getCartItemsAsync.fulfilled, (state, action) => {
-                console.log("getCartItemsAsync fulfilled", state)
-                const newState = { items: action.payload, status: 'fulfilled' }
-                return newState
-            }
-        )
+                return {
+                    items: toCartItemsArray(action.payload),
+                    status: "fulfilled",
+                };
+            })
 
-            .addCase(
-                getCartItemsAsync.pending, (state, _action) => {
-                    state.status = 'pending'
-                }
-            )
+            .addCase(getCartItemsAsync.pending, (state, _action) => {
+                state.status = "pending";
+            })
 
-            .addCase(
-                getCartItemsAsync.rejected, (state, _action) => {
-                    state.status = 'rejected'
-                }
-            )
+            .addCase(getCartItemsAsync.rejected, (state, _action) => {
+                state.items = [];
+                state.status = "rejected";
+            })
 
-            //수량변경
-            .addCase(
-                postChangeCartAsync.fulfilled, (state, action) => {
-                    console.log("postCartItemsAsync fulfilled ", state)
-                    const newState = { items: action.payload, status: 'fulfilled' }
-                    return newState
-                }
-            )
-            .addCase(
-                postChangeCartAsync.pending, (state, _action) => {
-                    state.status = 'pending'
-                }
-            )
-            .addCase(
-                postChangeCartAsync.rejected, (state, _action) => {
-                    state.status = 'rejected'
-                }
-            )
+            .addCase(postChangeCartAsync.fulfilled, (_state, action) => {
+                console.log("postChangeCartAsync payload", action.payload);
 
+                return {
+                    items: toCartItemsArray(action.payload),
+                    status: "fulfilled",
+                };
+            })
 
+            .addCase(postChangeCartAsync.pending, (state, _action) => {
+                state.status = "pending";
+            })
+
+            .addCase(postChangeCartAsync.rejected, (state, _action) => {
+                state.items = [];
+                state.status = "rejected";
+            });
     },
-})
-export default cartSlice.reducer
+});
+
+export default cartSlice.reducer;

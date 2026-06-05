@@ -27,27 +27,35 @@ public class CartController {
     private final CartService cartService;
 
     // 카트 내용 변화
-    @PreAuthorize("#itemDTO.email == authentication.name") // DTO의 사용자와 현재 검증된 사용자가 같으면
+    @PreAuthorize("hasRole('ROLE_USER')")
     @PostMapping("/change")
-    public List<CartItemListDTO> changeCart(@RequestBody CartItemDTO itemDTO) {
+    public List<CartItemListDTO> changeCart(
+            @RequestBody CartItemDTO itemDTO,
+            Principal principal) {
 
-        log.info(itemDTO);
+        String email = principal.getName();
+
+        // 프론트에서 email을 보내더라도 신뢰하지 않고,
+        // JWT 인증된 사용자 email로 서버에서 직접 세팅
+        itemDTO.setEmail(email);
+
+        log.info("change cart itemDTO: {}", itemDTO);
 
         if (itemDTO.getQty() <= 0) {
             return cartService.remove(itemDTO.getCino());
         }
 
         return cartService.addOrModify(itemDTO);
-
     }
 
     // 사용자의 카트를 불러옴
     @PreAuthorize("hasRole('ROLE_USER')")
-    @GetMapping("/items") // security에 저장된 회원 정보
+    @GetMapping("/items")
     public List<CartItemListDTO> getCartitems(Principal principal) {
+
         String email = principal.getName();
 
-        log.info("email: " + email);
+        log.info("cart owner email: {}", email);
 
         return cartService.getCartItems(email);
     }
@@ -56,8 +64,9 @@ public class CartController {
     @PreAuthorize("hasRole('ROLE_USER')")
     @DeleteMapping("/{cino}")
     public List<CartItemListDTO> removeFromCart(@PathVariable("cino") Long cino) {
-        log.info("cart item no(remove): " + cino);
+
+        log.info("cart item no(remove): {}", cino);
+
         return cartService.remove(cino);
     }
-
 }

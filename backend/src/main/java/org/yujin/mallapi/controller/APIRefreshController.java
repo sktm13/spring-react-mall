@@ -16,66 +16,69 @@ import lombok.extern.log4j.Log4j2;
 @RequiredArgsConstructor
 public class APIRefreshController {
 
-    //토큰 재발급
+    // 토큰 재발급
     @RequestMapping("/api/member/refresh")
     public Map<String, Object> refresh(
-            @RequestHeader("Authorization") String authHeader,
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
             String refreshToken) {
 
-        //토큰 유무 검증
-        if (refreshToken == null) {
+        if (refreshToken == null || refreshToken.isBlank()) {
             throw new CustomJWTException("NULL_REFRESH");
         }
-        if (authHeader == null || authHeader.length() < 7) {
-            throw new CustomJWTException("INVALID_STRING");
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new CustomJWTException("INVALID_ACCESS_TOKEN");
         }
 
-        // Bearer <<< 앞에 7글자 제거
         String accessToken = authHeader.substring(7);
 
-        // Access 토큰 검증
-        if (checkExpiredToken(accessToken) == false) {
+        if (accessToken.isBlank() || accessToken.equals("undefined") || accessToken.equals("null")) {
+            throw new CustomJWTException("INVALID_ACCESS_TOKEN");
+        }
+
+        // Access 토큰이 아직 만료되지 않았으면 기존 토큰 그대로 반환
+        if (!checkExpiredToken(accessToken)) {
             return Map.of("accessToken", accessToken, "refreshToken", refreshToken);
         }
 
-        // Refresh토큰 검증
+        // Refresh 토큰 검증
         Map<String, Object> claims = JWTUtil.validateToken(refreshToken);
 
-        log.info("refresh ... claims: " + claims);
+        log.info("refresh ... claims: {}", claims);
 
-        //access토큰 재발급
         String newAccessToken = JWTUtil.generateToken(claims, 10);
-        //refresh토큰 재발급 조건 따짐
-        String newRefreshToken = checkTime((Integer) claims.get("exp")) == true ? JWTUtil.generateToken(claims, 60 * 24)
+
+        Object expObj = claims.get("exp");
+        Integer exp = expObj instanceof Integer ? (Integer) expObj : ((Number) expObj).intValue();
+
+        String newRefreshToken = checkTime(exp)
+                ? JWTUtil.generateToken(claims, 60 * 24)
                 : refreshToken;
+
         return Map.of("accessToken", newAccessToken, "refreshToken", newRefreshToken);
     }
 
-    // 시간이 1시간 미만으로 남았다면
     private boolean checkTime(Integer exp) {
-        // JWT exp를 날짜로 변환
-        java.util.Date expDate = new java.util.Date((long) exp * (1000));
-        // 현재 시간과의 차이 계산 - 밀리세컨즈
+        java.util.Date expDate = new java.util.Date((long) exp * 1000);
+
         long gap = expDate.getTime() - System.currentTimeMillis();
-        // 분단위 계산
+
         long leftMin = gap / (1000 * 60);
-        // 1시간도 안남았는지..
+
         return leftMin < 60;
     }
 
-    //토큰 만료시 true 반환
     private boolean checkExpiredToken(String token) {
-
         try {
-
             JWTUtil.validateToken(token);
-
         } catch (CustomJWTException ex) {
-
             if (ex.getMessage().equals("Expired")) {
                 return true;
             }
+
+            throw ex;
         }
+
         return false;
     }
 }

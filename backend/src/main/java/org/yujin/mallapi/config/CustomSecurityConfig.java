@@ -1,6 +1,9 @@
 package org.yujin.mallapi.config;
 
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Arrays;
+import java.util.Map;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,6 +12,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -20,6 +24,10 @@ import org.yujin.mallapi.security.handler.APILoginFailHandler;
 import org.yujin.mallapi.security.handler.APILoginSuccessHandler;
 import org.yujin.mallapi.security.handler.CustomAccessDeniedHandler;
 
+import com.google.gson.Gson;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
@@ -33,16 +41,16 @@ public class CustomSecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        log.info("-------------------security config---------------------------");
 
-        http.cors(httpSecurityCorsConfigurer -> {
-            httpSecurityCorsConfigurer.configurationSource(corsConfigurationSource());
-        });
+        http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
 
-        // 로그인 성공 실패 처리
-        http.sessionManagement(sessionConfig -> sessionConfig.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+        http.csrf(csrf -> csrf.disable());
 
-        http.csrf(httpSecurityCsrfConfigurer -> httpSecurityCsrfConfigurer.disable());
+        http.httpBasic(httpBasic -> httpBasic.disable());
+
+        http.sessionManagement(session ->
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+        );
 
         http.userDetailsService(customUserDetailsService);
 
@@ -50,20 +58,23 @@ public class CustomSecurityConfig {
                 .requestMatchers("/health").permitAll()
                 .requestMatchers("/api/member/login").permitAll()
                 .requestMatchers("/api/member/kakao").permitAll()
-                .anyRequest().authenticated());
+                .requestMatchers("/api/member/refresh").permitAll()
+                .requestMatchers("/api/products/view/**").permitAll()
+                .anyRequest().authenticated()
+        );
 
-        // 임시 로그인url 생성
-        http.formLogin(config -> {
-            config.loginProcessingUrl("/api/member/login");
-            config.successHandler(new APILoginSuccessHandler());
-            config.failureHandler(new APILoginFailHandler());
-        });
+        http.formLogin(form -> form
+                .loginProcessingUrl("/api/member/login")
+                .successHandler(new APILoginSuccessHandler())
+                .failureHandler(new APILoginFailHandler())
+        );
 
-        // 체크필터 추가
         http.addFilterBefore(new JWTCheckFilter(), UsernamePasswordAuthenticationFilter.class);
 
-        // deniedHandler 추가
-        http.exceptionHandling(config -> config.accessDeniedHandler(new CustomAccessDeniedHandler()));
+        http.exceptionHandling(exception -> exception
+                .authenticationEntryPoint(apiAuthenticationEntryPoint())
+                .accessDeniedHandler(new CustomAccessDeniedHandler())
+        );
 
         return http.build();
     }
@@ -71,6 +82,33 @@ public class CustomSecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public AuthenticationEntryPoint apiAuthenticationEntryPoint() {
+        return (HttpServletRequest request,
+                HttpServletResponse response,
+                org.springframework.security.core.AuthenticationException authException) -> {
+
+            sendErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "ERROR_UNAUTHORIZED");
+        };
+    }
+
+    private void sendErrorResponse(
+            HttpServletResponse response,
+            int status,
+            String errorMessage) throws IOException {
+
+        Gson gson = new Gson();
+
+        String json = gson.toJson(Map.of("error", errorMessage));
+
+        response.setStatus(status);
+        response.setContentType("application/json;charset=UTF-8");
+
+        PrintWriter writer = response.getWriter();
+        writer.println(json);
+        writer.close();
     }
 
     @Bean
@@ -84,9 +122,9 @@ public class CustomSecurityConfig {
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+
         source.registerCorsConfiguration("/**", configuration);
 
         return source;
     }
-
 }

@@ -1,0 +1,69 @@
+# =========================
+# Git
+# =========================
+.git
+.gitignore
+
+
+# =========================
+# Environment files
+# 실제 환경변수 파일은 Docker build context에 포함하지 않음
+# =========================
+.env
+.env.local
+.env.production
+.env.docker
+
+backend/.env
+backend/.env.local
+backend/.env.production
+backend/.env.docker
+
+frontend/.env
+frontend/.env.local
+frontend/.env.production
+frontend/.env.docker
+
+# env example은 포함 가능
+!.env.example
+!backend/.env.example
+!frontend/.env.example
+
+
+# =========================
+# Backend build/cache
+# =========================
+backend/.gradle
+backend/build
+backend/*.log
+
+
+# =========================
+# Frontend build/cache
+# =========================
+frontend/node_modules
+frontend/dist
+
+
+# =========================
+# Upload files
+# =========================
+backend/upload
+backend/uploads
+upload
+uploads
+
+
+# =========================
+# IDE / OS
+# =========================
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+
+
+# =========================
+# Misc
+# =========================
+*.log
