@@ -112,15 +112,22 @@ MariaDB:  localhost:3307
 ```
 ---
 
-### 4. 테스트 계정
+## 초기 데이터
 
-Docker 실행 시 초기 데이터가 자동 생성됩니다.
+Docker 실행 시 DB에 데이터가 없으면 초기 데이터가 자동 생성됩니다.
+
+초기 데이터는 서버 시작 시 `DataInitializer`에서 생성되며, 이미 데이터가 존재하는 경우 중복 생성하지 않습니다.
+
+---
+
+### 테스트 계정
 
 #### USER
 
 ```text
 email: user@aaa.com
 password: 1111
+role: USER
 ```
 
 #### ADMIN
@@ -128,6 +135,7 @@ password: 1111
 ```text
 email: admin@aaa.com
 password: 1111
+role: USER, ADMIN
 ```
 
 #### MANAGER
@@ -135,7 +143,80 @@ password: 1111
 ```text
 email: manager@aaa.com
 password: 1111
+role: USER, MANAGER
 ```
+
+---
+
+### 초기 상품 데이터
+
+초기 상품 20개가 자동 생성됩니다.
+
+| 번호 | 상품명          |       가격 |
+| -: | ------------ | -------: |
+|  1 | 베이직 반팔 티셔츠   |  19,900원 |
+|  2 | 오버핏 후드티      |  45,900원 |
+|  3 | 슬림 데님 팬츠     |  39,900원 |
+|  4 | 코튼 와이드 팬츠    |  42,900원 |
+|  5 | 라이트 윈드브레이커   |  69,900원 |
+|  6 | 미니멀 셔츠       |  34,900원 |
+|  7 | 스웨트 조거 팬츠    |  37,900원 |
+|  8 | 니트 가디건       |  55,900원 |
+|  9 | 레귤러 치노 팬츠    |  36,900원 |
+| 10 | 데일리 맨투맨      |  32,900원 |
+| 11 | 트레이닝 셋업 상의   |  48,900원 |
+| 12 | 트레이닝 셋업 하의   |  42,900원 |
+| 13 | 베이직 볼캡       |  19,900원 |
+| 14 | 캔버스 토트백      |  25,900원 |
+| 15 | 러닝 스니커즈      |  79,900원 |
+| 16 | 클래식 로퍼       |  89,900원 |
+| 17 | 데일리 백팩       |  59,900원 |
+| 18 | 울 블렌드 코트     | 129,000원 |
+| 19 | 패딩 베스트       |  89,000원 |
+| 20 | 스트라이프 긴팔 티셔츠 |  29,900원 |
+
+상품별 샘플 이미지는 서버 실행 시 자동 생성됩니다.
+
+```text
+sample_01.jpg ~ sample_20.jpg
+s_sample_01.jpg ~ s_sample_20.jpg
+default.jpeg
+s_default.jpeg
+```
+
+---
+
+### 초기 문의 데이터
+
+초기 문의 8개가 자동 생성됩니다.
+
+| 번호 | 제목             | 작성자                                       | 상태   |
+| -: | -------------- | ----------------------------------------- | ---- |
+|  1 | 배송은 얼마나 걸리나요?  | [user@aaa.com](mailto:user@aaa.com)       | WAIT |
+|  2 | 상품 사이즈 문의      | [user@aaa.com](mailto:user@aaa.com)       | DONE |
+|  3 | 이미지 업로드 테스트 문의 | [manager@aaa.com](mailto:manager@aaa.com) | WAIT |
+|  4 | 반품 가능 여부 문의    | [user@aaa.com](mailto:user@aaa.com)       | DONE |
+|  5 | 관리자 답변 기능 확인   | [manager@aaa.com](mailto:manager@aaa.com) | WAIT |
+|  6 | 장바구니 수량 변경 문의  | [user@aaa.com](mailto:user@aaa.com)       | WAIT |
+|  7 | 카카오 로그인 문의     | [user@aaa.com](mailto:user@aaa.com)       | DONE |
+|  8 | 상품 검색 기능 문의    | [manager@aaa.com](mailto:manager@aaa.com) | WAIT |
+
+`DONE` 상태의 문의는 관리자 답변 데이터도 함께 생성됩니다.
+
+---
+
+### 초기 데이터 재생성 방법
+
+이미 생성된 DB 데이터가 있으면 초기 데이터는 다시 생성되지 않습니다.
+
+초기 데이터를 다시 생성하려면 Docker volume까지 삭제한 뒤 재실행합니다.
+
+```bash
+docker compose down -v
+docker compose up --build
+```
+
+`-v` 옵션은 MariaDB 데이터와 업로드 파일 volume을 삭제하므로 주의해야 합니다.
 
 ---
 
